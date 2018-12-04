@@ -32,7 +32,7 @@
         <header>
           <h2>Experience Sampling Timer</h2>
           <button id="button"  style="font-size : 30px;">Click to start</button>
-          <h1 id="message">The experiment will end in <span id="timeleft"></span> ...</h1>
+          <h1 id="message">The experiment will end in <span id="timeleft"></span>. The timer has gone off <span id="datasofar"></span> ...</h1>
         </header>
         <hr>
         <section id="main_content">
@@ -83,7 +83,7 @@ function playSound(sound) {
 }
 
 //returns the time in seconds until the next semi-random data gathering
-function setupNextTimer(endtime, display, remainingpoints, devtime, linkurl){
+function setupNextTimer(endtime, display, display2, remainingpoints, devtime, linkurl){
 
     var remainingtime = endtime - (new Date()).getTime(); //remaining time till end of experiment
     var expectedtimer = remainingtime/(remainingpoints+1); //time to expected next data gathering point, assuming equal intervals
@@ -96,11 +96,10 @@ function setupNextTimer(endtime, display, remainingpoints, devtime, linkurl){
 
         minutes = parseInt(timer / 60, 10)
         seconds = parseInt(timer % 60, 10);
-
         minutes = minutes < 10 ? "0" + minutes : minutes;
         seconds = seconds < 10 ? "0" + seconds : seconds;
-
         display.textContent = minutes + ":" + seconds;
+        display2.textContent = ""+datasofar;
 
         var pretitle = document.title.substring(document.title.indexOf(" | "));
         //update also the title
@@ -109,7 +108,7 @@ function setupNextTimer(endtime, display, remainingpoints, devtime, linkurl){
         return timer;
 }
 
-function startTimer(duration, display, linkurl) {
+function startTimer(duration, display, display2, linkurl) {
     var timer = duration, minutes, seconds;
     var link = document.getElementById('link');
     link.href = linkurl;
@@ -119,11 +118,10 @@ function startTimer(duration, display, linkurl) {
     setInterval(function () {
         minutes = parseInt(timer / 60, 10)
         seconds = parseInt(timer % 60, 10);
-
         minutes = minutes < 10 ? "0" + minutes : minutes;
         seconds = seconds < 10 ? "0" + seconds : seconds;
-
         display.textContent = minutes + ":" + seconds;
+        display2.textContent = ""+datasofar;
 
         var pretitle = document.title.substring(document.title.indexOf(" | "));
         //update also the title
@@ -182,6 +180,7 @@ if (mediaPlaybackRequiresUserGesture()) {
     totaltime = 75*60, //Total experiment time in seconds
     devtime = Math.floor(totaltime/(2*(times+1))), //range around the regular time point, where the data gathering can happen, in seconds
     display = document.querySelector('#timeleft');
+    display2 = document.querySelector('#datasofar');
 
     var datasofar = 0; // Number of data gathering events fired so far
 
@@ -207,9 +206,16 @@ if (mediaPlaybackRequiresUserGesture()) {
     //Setup where the end of the experiment will fall
     var endtime = (new Date()).getTime()+(totaltime*1000); //timestamp of the endtime
 
+    //Update the display till the end of the experiment
+    minutes = parseInt(totaltime / 60, 10)
+    seconds = parseInt(totaltime % 60, 10);
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    display.textContent = minutes + ":" + seconds;
+
     //Randomly decide where the next data gathering point will fall, in seconds
-    var nextTimer = setupNextTimer(endtime, display, (times-datasofar), devtime, url);
-    document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(nextTimer, display, url);document.getElementById('button').disabled=true;}
+    var nextTimer = setupNextTimer(endtime, display, display2, (times-datasofar), devtime, url);
+    document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(nextTimer, display, display2, url);document.getElementById('button').disabled=true;}
 
 };
 </script>
