@@ -36,7 +36,7 @@
         </header>
         <hr>
         <section id="main_content">
-<h4>Once the time goes off, you can go use the <a id="link" href="http://tinyurl.com/linnaruum-observer" target="_new">provided link</a> (opens a new browser tab).</h4>
+<h4>Once the time goes off, you can use the <a id="link" href="http://tinyurl.com/linnaruum-observer" target="_new">provided link</a> (opens a new browser tab), or use the provided QR code (on paper).</h4>
 
         </section>
 
@@ -166,16 +166,31 @@ if (mediaPlaybackRequiresUserGesture()) {
 ///////////////
 
 
-    var fiveMinutes = 60 * 5,
+    var times = 6, // Data gathering points
+    totaltime = 75*60, //Total experiment time in seconds
+    devtime = Math.floor(totaltime/(2*(times+1))), //range around the regular time point, where the data gathering can happen, in seconds
     display = document.querySelector('#timeleft');
 
-    if(parseInt(getParameterByName('time'))>0){
-        fiveMinutes = parseInt(getParameterByName('time'))*60;
+    var datasofar = 0; // Number of data gathering events fired so far
+
+    // Number of data gathering points/alarms
+    if(parseInt(getParameterByName('times'))>0){
+        times = parseInt(getParameterByName('times'));
+    }
+
+    if(parseInt(getParameterByName('totalmin'))>0){
+        totaltime = parseInt(getParameterByName('totalmin'))*60;
+    }
+
+    if(parseInt(getParameterByName('devmin'))>0){
+        devtime = parseInt(getParameterByName('devmin'))*60;
     }
 
     if(getParameterByName('url')!=null && isURL(decodeURIComponent(getParameterByName('url')))){
         url = decodeURIComponent(getParameterByName('url'));
     }
+
+    //Randomly decide where the next data gathering point will fall
 
     setupTimer(fiveMinutes, display, url);
     document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(fiveMinutes, display, url);document.getElementById('button').disabled=true;}
