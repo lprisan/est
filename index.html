@@ -32,7 +32,7 @@
         <header>
           <h2>Experience Sampling Timer</h2>
           <button id="button"  style="font-size : 30px;">Click to start</button>
-          <h1 id="message">The experiment will end in <span id="timeleft"></span>. The timer has gone off <span id="datasofar"></span> ...</h1>
+          <h1 id="message">The experiment will end in <span id="timeleft"></span>. The timer has gone off <span id="datasofar"></span> times ...</h1>
         </header>
         <hr>
         <section id="main_content">
@@ -212,7 +212,8 @@ if (mediaPlaybackRequiresUserGesture()) {
     minutes = minutes < 10 ? "0" + minutes : minutes;
     seconds = seconds < 10 ? "0" + seconds : seconds;
     display.textContent = minutes + ":" + seconds;
-
+    display2.textContent = ""+datasofar;
+    
     //Randomly decide where the next data gathering point will fall, in seconds
     var nextTimer = setupNextTimer(endtime, display, display2, (times-datasofar), devtime, url);
     document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(nextTimer, display, display2, url);document.getElementById('button').disabled=true;}
