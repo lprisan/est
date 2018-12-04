@@ -82,14 +82,14 @@ function playSound(sound) {
     sounds[sound].play();
 }
 
+//returns the time in seconds until the next semi-random data gathering
 function setupNextTimer(endtime, display, remainingpoints, devtime, linkurl){
 
-
     var remainingtime = endtime - (new Date()).getTime(); //remaining time till end of experiment
-    var expectedtimer = remainingtime/remainingpoints; //time to expected next data gathering point, assuming equal intervals
+    var expectedtimer = remainingtime/(remainingpoints+1); //time to expected next data gathering point, assuming equal intervals
     var dev=devtime*1000; //Deviation/range around expected time point
     if(devtime>(expectedtimer-1000)/2) dev = (expectedtimer-1000)/2; //If deviation is too big, at least make the deviation so that the next timer falls into the second half towards the expected time
-    var timer = expectedtimer-dev+(Math.random()*2*dev); //Real timer until data gathering
+    var timer = Math.floor(expectedtimer-dev+(Math.random()*2*dev)/1000); //Real timer until data gathering, in seconds
     var minutes, seconds;
     var link = document.getElementById('link');
     link.href = linkurl;
@@ -190,10 +190,12 @@ if (mediaPlaybackRequiresUserGesture()) {
         times = parseInt(getParameterByName('times'));
     }
 
+    // Total time of the experiment, in seconds
     if(parseInt(getParameterByName('totalmin'))>0){
         totaltime = parseInt(getParameterByName('totalmin'))*60;
     }
 
+    // Deviation around expected point, in seconds
     if(parseInt(getParameterByName('devmin'))>0){
         devtime = parseInt(getParameterByName('devmin'))*60;
     }
@@ -203,9 +205,9 @@ if (mediaPlaybackRequiresUserGesture()) {
     }
 
     //Setup where the end of the experiment will fall
-    var endtime = (new Date()).getTime()+(totaltime*1000);
+    var endtime = (new Date()).getTime()+(totaltime*1000); //timestamp of the endtime
 
-    //Randomly decide where the next data gathering point will fall
+    //Randomly decide where the next data gathering point will fall, in seconds
     var nextTimer = setupNextTimer(endtime, display, (times-datasofar), devtime, url);
     document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(nextTimer, display, url);document.getElementById('button').disabled=true;}
 
