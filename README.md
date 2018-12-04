@@ -4,5 +4,5 @@ EST is the acronym of "experience sampling timer", it takes as parameters an URL
 hence, for 6 data gatherings randomly (but at roughly even intervals) in the next 75 minutes, the URL can be as follows:
 
 ```
-lprisan.github.io/est/?times=6&totalmin=75&url=http...(URL encoded address)
+https://lprisan.github.io/est/?times=6&totalmin=75&url=http...(URL encoded address)
 ```
