@@ -114,8 +114,8 @@ function setupNextTimer(endtime, display, display2, remainingpoints, devtime, li
 
 function startTimer(duration, display, display2, linkurl, datasofar) {
     var timer = duration, minutes, seconds;
-    var link = document.getElementById('link');
-    link.href = linkurl;
+    var link2 = document.getElementById('link2');
+    link2.href = linkurl;
 
     //alert("starting timer for "+duration);
     timersecs = Math.floor(timer/1000);
@@ -256,9 +256,9 @@ if (mediaPlaybackRequiresUserGesture()) {
         url = decodeURIComponent(getParameterByName('url'));
     }
 
-    var link = document.getElementById('link');
+    //var link = document.getElementById('link');
     var link2 = document.getElementById('link2');
-    link.href = url;
+    //link.href = url;
     link2.href = url;
 
 
