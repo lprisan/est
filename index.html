@@ -32,11 +32,16 @@
         <header>
           <h2>Experience Sampling Timer</h2>
           <button id="button"  style="font-size : 30px;">Click to start</button>
-          <h1 id="message">The experiment will end in <span id="timeleft"></span>. The timer has gone off <span id="datasofar"></span> times ...</h1>
+          <h1 id="message"><span id="initialmsg">Once you click the start button,</span> the experiment will end in <span id="timeleft"></span>. The timer has gone off <span id="datasofarmsg"></span> times ...</h1>
         </header>
         <hr>
         <section id="main_content">
-<h4>Once the time goes off, you can use the <a id="link" href="http://tinyurl.com/linnaruum-observer" target="_new">provided link</a> (opens a new browser tab), or use the provided QR code (on paper).</h4>
+            <div id="qr">
+                <h3>Please answer the questionnaire <a id="link2" href="https://goo.gl/FqZexS" target="_new">here</a></h3>
+                <img src="./assets/img/qr.png" alt="QR code for the questionnaire" width="400" />
+            </div>
+            <hr>
+            <h4>Once the next random timer goes off, you can use the <a id="link" href="https://goo.gl/FqZexS" target="_new">provided link</a> (opens a new browser tab), or use the provided QR code.</h4>
 
         </section>
 
@@ -85,19 +90,17 @@ function playSound(sound) {
 //returns the time in seconds until the next semi-random data gathering
 function setupNextTimer(endtime, display, display2, remainingpoints, devtime, linkurl){
 
-    var remainingtime = endtime - (new Date()).getTime(); //remaining time till end of experiment
+    remainingtime = endtime - (new Date()).getTime(); //remaining time till end of experiment
     var expectedtimer = remainingtime/(remainingpoints+1); //time to expected next data gathering point, assuming equal intervals
     var dev=devtime*1000; //Deviation/range around expected time point
-    if(devtime>(expectedtimer-1000)/2) dev = (expectedtimer-1000)/2; //If deviation is too big, at least make the deviation so that the next timer falls into the second half towards the expected time
-    var timer = Math.floor(expectedtimer-dev+(Math.random()*2*dev)/1000); //Real timer until data gathering, in seconds
+    if(dev>(expectedtimer-1000)/2) dev = (expectedtimer-1000)/2; //If deviation is too big, at least make the deviation so that the next timer falls into the second half towards the expected time
+    var timer = Math.floor(expectedtimer-dev+(Math.random()*2*dev)); //Real timer until data gathering, in seconds
     var minutes, seconds;
-    var link = document.getElementById('link');
-    link.href = linkurl;
-
-//        minutes = parseInt(timer / 60, 10)
-//        seconds = parseInt(timer % 60, 10);
-//        minutes = minutes < 10 ? "0" + minutes : minutes;
-//        seconds = seconds < 10 ? "0" + seconds : seconds;
+        var remainingtimesecs = Math.floor(remainingtime/1000);
+        minutes = parseInt(remainingtimesecs / 60, 10)
+        seconds = parseInt(remainingtimesecs % 60, 10);
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
 //        display.textContent = minutes + ":" + seconds;
 //        display2.textContent = ""+datasofar;
 
@@ -108,33 +111,67 @@ function setupNextTimer(endtime, display, display2, remainingpoints, devtime, li
         return timer;
 }
 
-function startTimer(duration, display, display2, linkurl) {
+function startTimer(duration, display, display2, linkurl, datasofar) {
     var timer = duration, minutes, seconds;
     var link = document.getElementById('link');
     link.href = linkurl;
 
-    alert("starting timer for "+duration);
+    //alert("starting timer for "+duration);
+    timersecs = Math.floor(timer/1000);
 
-    setInterval(function () {
-        minutes = parseInt(timer / 60, 10)
-        seconds = parseInt(timer % 60, 10);
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-        display.textContent = minutes + ":" + seconds;
-        display2.textContent = ""+datasofar;
+    intervalTimer = setInterval(myTimer, 1000);
+}
 
-        var pretitle = document.title.substring(document.title.indexOf(" | "));
-        //update also the title
-        document.title = minutes + ":" + seconds + " " + pretitle;
 
-        if (--timer < 0) {
-            //document.getElementById('alarm').play();
-            playSound('alarm');
-            datasofar++;
-            var next = setupNextTimer(endtime, display, (times-datasofar), devtime, url);
-            startTimer(next, display, linkurl);
+function myTimer() {
+    remainingtime = endtime - (new Date()).getTime();
+    var remainsecs = Math.floor(remainingtime/1000);
+    minutes = parseInt(remainsecs / 60, 10)
+    seconds = parseInt(remainsecs % 60, 10);
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    display.textContent = minutes + ":" + seconds;
+    var pretitle = document.title.substring(document.title.indexOf(" | "));
+    //update also the title
+    document.title = minutes + ":" + seconds + " " + pretitle;
+
+    display2.textContent = ""+datasofar;
+
+    var current = (new Date()).getTime();
+    var prop = (current-lasttime)/(nexttime-lasttime);
+    if(prop > startTrans && prop < endTrans){
+        displayqr.style.opacity = 1+((startTrans-prop)/(endTrans-startTrans));
+    }else if(prop>endTrans){
+        displayqr.style.opacity = 0;
+        displayqr.style.display = 'none';
+    }
+
+    if (--timersecs < 0) {
+        //document.getElementById('alarm').play();
+        playSound('alarm');
+        datasofar++;
+        displayqr.style.display='block';
+        displayqr.style.opacity=1;
+        if(datasofar<times){
+            clearInterval(intervalTimer);
+            var next = setupNextTimer(endtime, display, display2, (times-datasofar), devtime, url);
+            startTimer(next, display, display2, url, datasofar);
+            lasttime = (new Date()).getTime();
+            nexttime = (new Date()).getTime()+next;//Expected timestamp to finish the next timer
+        }else{//No more data needed, we wait until time is over
+            clearInterval(intervalTimer);
+            startTimer(remainingtime, display, display2, url, datasofar);
+            lasttime = (new Date()).getTime();
+            nexttime = endtime;//Expected timestamp to finish the next timer
+            //display.textContent = "No more data needed, waiting until experiment is over";
         }
-    }, 1000);
+    }
+    if(remainingtime<=0){
+        displayqr.style.display = "none";
+        clearInterval(intervalTimer);
+        document.body.style.backgroundColor = "red";
+        displayoverall.textContent = "Experiment is over!";
+    }
 }
 
 function getParameterByName(name, url) {
@@ -147,8 +184,6 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-var url="http://tinyurl.com/linnaruum-observer";
-
 function isURL(str) {
   var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
   '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
@@ -158,6 +193,31 @@ function isURL(str) {
   '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
   return pattern.test(str);
 }
+
+//Global variables
+var times = 6; // Data gathering points
+var totaltime = 75*60; //Total experiment time in seconds
+var devtime = Math.floor(totaltime/(2*(times+1))); //range around the regular time point, where the data gathering can happen, in seconds
+var display = document.querySelector('#timeleft');
+var display2 = document.querySelector('#datasofarmsg');
+var displayinitial = document.querySelector('#initialmsg');
+var displayqr = document.querySelector('#qr');
+var displayoverall = document.querySelector('#message');
+
+var datasofar = 0; // Number of data gathering events fired so far
+var url = "https://goo.gl/FqZexS";
+
+//Setup where the end of the experiment will fall (updated later when user clicks start button)
+var endtime = (new Date()).getTime()+(totaltime*1000); //timestamp of the endtime
+var remainingtime = 0; //Time till the end of experiment, in ms
+var timersecs; //Timer that will decrease each time we gather data
+var nexttime = endtime; //Time when the next timer is expected to go off (will change later)
+var lasttime = (new Date()).getTime();//Time the last timer went off
+var intervalTimer; //Interval variable to check whether the time has gone off
+var startTrans = 0.5;//Percentage of each timer where we start fading out the qr/link
+var endTrans = 0.75;//Percentage of each timer where we disappear the qr/link
+
+
 
 window.onload = function () {
 
@@ -175,14 +235,6 @@ if (mediaPlaybackRequiresUserGesture()) {
 }
 ///////////////
 
-
-    var times = 6, // Data gathering points
-    totaltime = 75*60, //Total experiment time in seconds
-    devtime = Math.floor(totaltime/(2*(times+1))), //range around the regular time point, where the data gathering can happen, in seconds
-    display = document.querySelector('#timeleft');
-    display2 = document.querySelector('#datasofar');
-
-    var datasofar = 0; // Number of data gathering events fired so far
 
     // Number of data gathering points/alarms
     if(parseInt(getParameterByName('times'))>0){
@@ -203,8 +255,11 @@ if (mediaPlaybackRequiresUserGesture()) {
         url = decodeURIComponent(getParameterByName('url'));
     }
 
-    //Setup where the end of the experiment will fall
-    var endtime = (new Date()).getTime()+(totaltime*1000); //timestamp of the endtime
+    var link = document.getElementById('link');
+    var link2 = document.getElementById('link2');
+    link.href = url;
+    link2.href = url;
+
 
     //Update the display till the end of the experiment
     minutes = parseInt(totaltime / 60, 10)
@@ -213,11 +268,18 @@ if (mediaPlaybackRequiresUserGesture()) {
     seconds = seconds < 10 ? "0" + seconds : seconds;
     display.textContent = minutes + ":" + seconds;
     display2.textContent = ""+datasofar;
-    
-    //Randomly decide where the next data gathering point will fall, in seconds
-    var nextTimer = setupNextTimer(endtime, display, display2, (times-datasofar), devtime, url);
-    document.getElementById('button').onclick=function(){document.getElementById('alarm').play();startTimer(nextTimer, display, display2, url);document.getElementById('button').disabled=true;}
+    displayqr.style.display = "none";
 
+    document.getElementById('button').onclick=function(){
+        endtime = (new Date()).getTime()+(totaltime*1000); //timestamp of the endtime, now for real
+        //Randomly decide where the next data gathering point will fall, in seconds
+        var nextTimer = setupNextTimer(endtime, display, display2, (times-datasofar), devtime, url);
+        document.getElementById('alarm').play();
+        startTimer(nextTimer, display, display2, url, datasofar);
+        lasttime = (new Date()).getTime();
+        nexttime = (new Date()).getTime()+nextTimer;//Expected timestamp to finish the next timer
+        document.getElementById('button').disabled = true;
+        document.getElementById('initialmsg').style.display = 'none';}
 };
 </script>
 
